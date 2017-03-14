@@ -39,6 +39,7 @@
 #include "plugin_legacysslnetworkoutput.h"
 #include "plugin_legacypublishgeometry.h"
 #include "plugin_dvr.h"
+#include "src/app/plugins/plugin_mark_static_objects/plugin_mark_static_objects.h"
 #include "cmpattern_teamdetector.h"
 #include "robocup_ssl_server.h"
 

@@ -61,6 +61,8 @@ StackRoboCupSSL::StackRoboCupSSL(
   settings->addChild(lut_yuv->getSettings());
 
   stack.push_back(new PluginCameraCalibration(_fb,*camera_parameters, *global_field));
+  
+  stack.push_back(new PluginMarkStaticObjects(_fb));
 
   stack.push_back(new PluginColorThreshold(_fb,lut_yuv));
 
