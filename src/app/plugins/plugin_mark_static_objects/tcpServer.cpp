@@ -21,15 +21,23 @@
 
 #include "tcpServer.h"
 
-TcpServer::TcpServer(QWidget * parent) : QObject(parent), port(10007), tcpServerPtr(new QTcpServer(this)) {
+quint16 TcpServer::nextPort(10007);
+QMutex TcpServer::mtx;
+
+TcpServer::TcpServer(QWidget * parent) : QObject(parent), tcpServerPtr(new QTcpServer(this)) {
     isServerRun = false;
     clients = QMap<int, QTcpSocket *>();
     connect(tcpServerPtr.data(), SIGNAL(newConnection()), this, SLOT(onNewConnection()));
-    if (!tcpServerPtr->listen(QHostAddress::Any, port)) {
+
+    mtx.lock();
+    uniquePort = nextPort++;
+    mtx.unlock();
+
+    if (!tcpServerPtr->listen(QHostAddress::Any, uniquePort)) {
         qDebug() <<  QObject::tr("Unable to start the server: %1.").arg(tcpServerPtr->errorString());
     } else {
         isServerRun = true;
-        qDebug() <<  QObject::tr("TCPSocket listen on port %1.").arg(port);
+        qDebug() <<  QObject::tr("TCPSocket listen on port %1.").arg(uniquePort);
     }
 }
 

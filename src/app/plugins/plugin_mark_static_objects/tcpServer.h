@@ -23,11 +23,13 @@
 
 #include <QtNetwork>
 #include <QWidget>
+#include <QMutex>
 
 class TcpServer : public QObject {
 Q_OBJECT
+
 public:
-    explicit TcpServer(QWidget * parent = 0);
+    explicit TcpServer(QWidget *parent = 0);
     ~TcpServer();
 
 public slots:
@@ -38,8 +40,11 @@ private slots:
     void onNewConnection();
 
 private:
-    /* Port on which server runs */
-    const quint16 port;
+    /* Next port to be used. Every thread reads the value and increments it atomically. */
+    static quint16 nextPort;
+    static QMutex mtx;
+    /* Port on which server runs. */
+    quint16 uniquePort;
     QScopedPointer<QTcpServer> tcpServerPtr;
     QMap<int, QTcpSocket *> clients;
     bool isServerRun;
