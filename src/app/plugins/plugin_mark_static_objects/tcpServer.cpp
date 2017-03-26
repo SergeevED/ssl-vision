@@ -63,7 +63,15 @@ void TcpServer::sendMessageToAll(QByteArray *data) {
     }
     QMap<int, QTcpSocket *>::const_iterator i = clients.constBegin();
     while (i != clients.constEnd()) {
-        i.value()->write(*data);
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out.setVersion(QDataStream::Qt_4_0);
+
+        out << static_cast<quint16>(0);
+        out << data->data();
+        out.device()->seek(0);
+        out << (quint16)(block.size() - sizeof(quint16));
+        i.value()->write(block);
         ++i;
     }
     delete data;
