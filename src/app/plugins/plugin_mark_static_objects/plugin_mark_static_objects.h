@@ -45,7 +45,7 @@ public:
 
 signals:
     void updateImage(QImage * im);
-    void sendCoordinates(QByteArray *data);
+    void sendCoordinates(const std::vector< QPair<QPoint, QPoint> >& objects);
 
 public slots:
     void redrawImage();

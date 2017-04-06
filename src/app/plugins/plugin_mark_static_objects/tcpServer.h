@@ -24,6 +24,9 @@
 #include <QtNetwork>
 #include <QWidget>
 #include <QMutex>
+#include <QByteArray>
+#include <vector>
+#include "messages_robocup_ssl_static_objects.pb.h"
 
 class TcpServer : public QObject {
 Q_OBJECT
@@ -33,14 +36,14 @@ public:
     ~TcpServer();
 
 public slots:
-    /* Sends message to all connected clients. Deletes @data upon completion. */
-    void sendMessageToAll(QByteArray *data);
+    /* Sends message to all connected clients. */
+    void sendMessageToAll(const std::vector< QPair<QPoint, QPoint> >& objects);
 
 private slots:
     void onNewConnection();
 
 private:
-    /* Next port to be used. Every thread reads the value and increments it atomically. */
+    /* Next port to be used. Server reads the value and increments it atomically. */
     static quint16 nextPort;
     static QMutex mtx;
     /* Port on which server runs. */

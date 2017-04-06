@@ -57,21 +57,42 @@ void TcpServer::onNewConnection() {
     clients[socketDescriptor] = clientSocket;
 }
 
-void TcpServer::sendMessageToAll(QByteArray *data) {
+void TcpServer::sendMessageToAll(const std::vector< QPair<QPoint, QPoint> >& objects) {
     if (!isServerRun) {
         return;
     }
+
+    StaticObjects staticObjects;
+
+    for(std::vector<QPair<QPoint, QPoint> >::const_iterator point = objects.begin();
+        point != objects.end(); ++point) {
+
+        Point *first = new Point();
+        first->set_x(point->first.x());
+        first->set_y(point->first.y());
+
+        Point *second = new Point();
+        second->set_x(point->second.x());
+        second->set_y(point->second.y());
+
+        Wall *wall = staticObjects.add_walls();
+        wall->set_allocated_beginning(first);
+        wall->set_allocated_end(second);
+    }
+
+    QScopedPointer<std::string> staticObjectsString(new std::string());
+    staticObjects.SerializeToString(&*staticObjectsString);
+
     QMap<int, QTcpSocket *>::const_iterator i = clients.constBegin();
     while (i != clients.constEnd()) {
         QByteArray block;
         QDataStream out(&block, QIODevice::WriteOnly);
         out.setVersion(QDataStream::Qt_4_0);
         out << static_cast<quint16>(0);
-        out << data->data();
+        out << staticObjectsString->data();
         out.device()->seek(0);
         out << static_cast<quint16>(block.size() - sizeof(quint16));
         i.value()->write(block);
         ++i;
     }
-    delete data;
 }

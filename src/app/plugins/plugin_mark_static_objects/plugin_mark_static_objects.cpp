@@ -36,10 +36,9 @@ PluginMarkStaticObjects::PluginMarkStaticObjects(FrameBuffer * _buffer) :
             Qt::QueuedConnection);
 
     connect(this,
-            SIGNAL(sendCoordinates(QByteArray *)),
+            SIGNAL(sendCoordinates(const std::vector< QPair<QPoint, QPoint> > &)),
             &*tcpServer,
-            SLOT(sendMessageToAll(QByteArray *)),
-            Qt::QueuedConnection);
+            SLOT(sendMessageToAll(const std::vector< QPair<QPoint, QPoint> > &)));
 }
 
 PluginMarkStaticObjects::~PluginMarkStaticObjects() {
@@ -82,18 +81,8 @@ void PluginMarkStaticObjects::onSendButtonClicked() {
     if (objects.empty()) {
         return;
     }
-    for(std::vector<QPair<QPoint, QPoint> >::const_iterator point = objects.begin();
-        point != objects.end(); ++point) {
 
-        message.append(QString("[(%1,%2),(%3,%4)]").
-                arg(point->first.x()).
-                arg(point->first.y()).
-                arg(point->second.x()).
-                arg(point->second.y()));
-
-    }
-    QByteArray *bMessage = new QByteArray(message.toLatin1());
-    emit sendCoordinates(bMessage);
+    emit sendCoordinates(objects);
 }
 
 std::string PluginMarkStaticObjects::getName() {
