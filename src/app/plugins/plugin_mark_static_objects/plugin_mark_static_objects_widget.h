@@ -22,11 +22,15 @@
 #define PLUGIN_MARK_STATIC_OBJECTS_WIDGET_H
 
 #include "plugin_mark_static_objects.h"
-#include "tcpServer.h"
+#include "tcp_server.h"
+#include "static_objects/static_object_interface.h"
+#include "static_objects/point.h"
+#include "static_objects/wall.h"
 
 #include <visionplugin.h>
-#include <vector>
+#include <list>
 #include <QWidget>
+#include <QComboBox>
 #include <QVBoxLayout>
 #include <QImage>
 #include <QLabel>
@@ -39,11 +43,19 @@ class PluginMarkStaticObjectsWidget : public QWidget
 {
 Q_OBJECT
 public:
-    PluginMarkStaticObjectsWidget(PluginMarkStaticObjects * plugin,
-                                  QWidget * parent = 0, Qt::WindowFlags f = 0);
+    /* Types of static object that can be marked. */
+    enum StaticObjectType {
+        POINT,
+        WALL
+    };
 
-    /* Returns array of marked straight lines. */
-    const vector< QPair<QPoint, QPoint> >& getObjects() const;
+    PluginMarkStaticObjectsWidget(PluginMarkStaticObjects *plugin,
+                                  QWidget *parent = 0, Qt::WindowFlags f = 0);
+
+    ~PluginMarkStaticObjectsWidget();
+
+    /* Returns array of marked static objects. */
+    const std::list<StaticObjectInterface*>& getObjects() const;
 
     QVBoxLayout * layoutMain;
     QScopedPointer<QImage> imagePtr;
@@ -52,6 +64,7 @@ public:
     QPushButton * undoButton;
     QPushButton * clearButton;
     QPushButton * sendButton;
+    QComboBox * objectTypeComboBox;
 
     /* Is set to true then requestImageButton is pressed. Object of class
      * PluginMarkStaticObjects updates image if isImageRequested is true. */
@@ -64,6 +77,7 @@ signals:
 public slots:
     /* Sets content of field imagePtr`s to @im and updates the image on display. */
     void update(QImage * im);
+    void objectTypeChanged(const QString &type);
 
 protected:
     /* Looks for button clicks on imageLabel. */
@@ -72,14 +86,16 @@ protected:
 private slots:
     void getImageButtonClicked();
     void imageClicked(const QMouseEvent *const event);
-    /* Deletes last added line. */
+    /* Deletes last added static objects. */
     void undoButtonClicked();
-    /* Deletes all lines. */
+    /* Deletes all static objects. */
     void clearButtonClicked();
 
 private:
-    /* Array of marked straight lines */
-    vector< QPair<QPoint, QPoint> > objects;
+    /* Type of static object that user is going to mark. Determined by ... */
+    StaticObjectType staticObjectType;
+    /* Array of marked static objects */
+    std::list<StaticObjectInterface*> objects;
     /* First point of a line. */
     QPoint firstPoint;
     bool isFirstPointMarked;

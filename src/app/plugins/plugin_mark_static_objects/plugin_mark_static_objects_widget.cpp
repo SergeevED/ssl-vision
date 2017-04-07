@@ -24,17 +24,25 @@
 PluginMarkStaticObjectsWidget::PluginMarkStaticObjectsWidget(
         PluginMarkStaticObjects * plugin, QWidget * parent, Qt::WindowFlags f) :
         QWidget(parent, f), imagePtr(), isImageRequested(false) {
+    staticObjectType = POINT;
+
     layoutMain = new QVBoxLayout(this);
     requestImageButton = new QPushButton(QString("Get image"), this);
     undoButton = new QPushButton(QString("Undo"), this);
     clearButton = new QPushButton(QString("Clear all"), this);
     sendButton = new QPushButton(QString("Send"), this);
     imageLabel = new QLabel(this);
+    objectTypeComboBox = new QComboBox(this);
+
+    objectTypeComboBox->addItem("Point");
+    objectTypeComboBox->addItem("Wall");
+
     layoutMain->addWidget(imageLabel);
     layoutMain->addWidget(requestImageButton);
     layoutMain->addWidget(undoButton);
     layoutMain->addWidget(clearButton);
     layoutMain->addWidget(sendButton);
+    layoutMain->addWidget(objectTypeComboBox);
     this->setLayout(layoutMain);
 
     isFirstPointMarked = false;
@@ -68,11 +76,34 @@ PluginMarkStaticObjectsWidget::PluginMarkStaticObjectsWidget(
             plugin,
             SLOT(redrawImage()),
             Qt::QueuedConnection);
+
+    connect(objectTypeComboBox,
+            SIGNAL(activated(const QString &)),
+            this,
+            SLOT(objectTypeChanged(const QString &)));
+}
+
+PluginMarkStaticObjectsWidget::~PluginMarkStaticObjectsWidget() {
+    for(std::list<StaticObjectInterface*>::iterator object = objects.begin();
+        object != objects.end(); ++object) {
+
+        delete *object;
+    }
 }
 
 void PluginMarkStaticObjectsWidget::update(QImage * im) {
     imageLabel->setPixmap(QPixmap::fromImage(*im));
     imagePtr.reset(im);
+}
+
+void PluginMarkStaticObjectsWidget::objectTypeChanged(const QString & type) {
+    if (QString::compare(type, QString("Wall")) == 0) {
+        staticObjectType = WALL;
+    } else if (QString::compare(type, QString("Point")) == 0) {
+        staticObjectType = POINT;
+    } else {
+        qDebug() << "Unknown static object type: " << type.toUtf8().constData();
+    }
 }
 
 void PluginMarkStaticObjectsWidget::getImageButtonClicked() {
@@ -94,13 +125,24 @@ void PluginMarkStaticObjectsWidget::clearButtonClicked() {
 }
 
 void PluginMarkStaticObjectsWidget::imageClicked(const QMouseEvent *const event) {
-    if (isFirstPointMarked) {
-        objects.push_back(QPair<QPoint, QPoint>(firstPoint, event->pos()));
-        isFirstPointMarked = false;
-        emit objectsChanged();
-    } else {
-        firstPoint = event->pos();
-        isFirstPointMarked = true;
+    QPoint point = event->pos();
+
+    switch(staticObjectType) {
+        case POINT:
+            objects.push_back(new Point(point.x(), point.y()));
+            emit objectsChanged();
+            break;
+
+        case WALL:
+            if (isFirstPointMarked) {
+                objects.push_back(new Wall(firstPoint.x(), firstPoint.y(), point.x(), point.y()));
+                isFirstPointMarked = false;
+                emit objectsChanged();
+            } else {
+                firstPoint = event->pos();
+                isFirstPointMarked = true;
+            }
+            break;
     }
 }
 
@@ -112,6 +154,6 @@ bool PluginMarkStaticObjectsWidget::eventFilter(QObject* watched, QEvent* event)
     return false;
 }
 
-const vector< QPair<QPoint, QPoint> >& PluginMarkStaticObjectsWidget::getObjects() const {
+const list<StaticObjectInterface*>& PluginMarkStaticObjectsWidget::getObjects() const {
     return objects;
 }

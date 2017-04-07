@@ -21,12 +21,14 @@
 #ifndef TCP_SERVER_H
 #define TCP_SERVER_H
 
+#include "static_objects/static_object_interface.h"
+#include "messages_robocup_ssl_static_objects.pb.h"
+
 #include <QtNetwork>
 #include <QWidget>
 #include <QMutex>
 #include <QByteArray>
-#include <vector>
-#include "messages_robocup_ssl_static_objects.pb.h"
+#include <list>
 
 class TcpServer : public QObject {
 Q_OBJECT
@@ -37,12 +39,14 @@ public:
 
 public slots:
     /* Sends message to all connected clients. */
-    void sendMessageToAll(const std::vector< QPair<QPoint, QPoint> >& objects);
+    void sendMessageToAll(const std::list<StaticObjectInterface*>& objects);
 
 private slots:
     void onNewConnection();
 
 private:
+    void serializeMessage(const std::list<StaticObjectInterface*>& objects, std::string &message);
+
     /* Next port to be used. Server reads the value and increments it atomically. */
     static quint16 nextPort;
     static QMutex mtx;

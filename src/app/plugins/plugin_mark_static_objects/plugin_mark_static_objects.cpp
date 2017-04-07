@@ -36,9 +36,9 @@ PluginMarkStaticObjects::PluginMarkStaticObjects(FrameBuffer * _buffer) :
             Qt::QueuedConnection);
 
     connect(this,
-            SIGNAL(sendCoordinates(const std::vector< QPair<QPoint, QPoint> > &)),
+            SIGNAL(sendCoordinates(const std::list<StaticObjectInterface*> &)),
             &*tcpServer,
-            SLOT(sendMessageToAll(const std::vector< QPair<QPoint, QPoint> > &)));
+            SLOT(sendMessageToAll(const std::list<StaticObjectInterface*> &)));
 }
 
 PluginMarkStaticObjects::~PluginMarkStaticObjects() {
@@ -64,11 +64,11 @@ void PluginMarkStaticObjects::redrawImage() {
     QImage * im = new QImage(image.copy());
     painter.begin(im);
     painter.setPen(pen);
-    const vector< QPair<QPoint, QPoint> >& objects = widget->getObjects();
-    for(std::vector<QPair<QPoint, QPoint> >::const_iterator point = objects.begin();
-        point != objects.end(); ++point) {
+    const std::list<StaticObjectInterface*>& objects = widget->getObjects();
+    for(std::list<StaticObjectInterface*>::const_iterator object = objects.begin();
+        object != objects.end(); ++object) {
 
-        painter.drawLine(point->first, point->second);
+        (*object)->draw(painter);
     }
     painter.end();
 
@@ -77,7 +77,7 @@ void PluginMarkStaticObjects::redrawImage() {
 
 void PluginMarkStaticObjects::onSendButtonClicked() {
     QString message;
-    const vector< QPair<QPoint, QPoint> >& objects = widget->getObjects();
+    const std::list<StaticObjectInterface*>& objects = widget->getObjects();
     if (objects.empty()) {
         return;
     }

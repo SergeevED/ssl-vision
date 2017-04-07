@@ -19,7 +19,7 @@
 */
 //========================================================================
 
-#include "tcpServer.h"
+#include "tcp_server.h"
 
 quint16 TcpServer::nextPort(10007);
 QMutex TcpServer::mtx;
@@ -57,31 +57,25 @@ void TcpServer::onNewConnection() {
     clients[socketDescriptor] = clientSocket;
 }
 
-void TcpServer::sendMessageToAll(const std::vector< QPair<QPoint, QPoint> >& objects) {
+void TcpServer::serializeMessage(const std::list<StaticObjectInterface*>& objects, std::string &message) {
+    StaticObjectsProtobuf::StaticObjects staticObjects;
+
+    for(std::list<StaticObjectInterface*>::const_iterator object = objects.begin();
+        object != objects.end(); ++object) {
+
+        (*object)->serialize(staticObjects);
+    }
+
+    staticObjects.SerializeToString(&message);
+}
+
+void TcpServer::sendMessageToAll(const std::list<StaticObjectInterface*>& objects) {
     if (!isServerRun) {
         return;
     }
 
-    StaticObjects staticObjects;
-
-    for(std::vector<QPair<QPoint, QPoint> >::const_iterator point = objects.begin();
-        point != objects.end(); ++point) {
-
-        Point *first = new Point();
-        first->set_x(point->first.x());
-        first->set_y(point->first.y());
-
-        Point *second = new Point();
-        second->set_x(point->second.x());
-        second->set_y(point->second.y());
-
-        Wall *wall = staticObjects.add_walls();
-        wall->set_allocated_beginning(first);
-        wall->set_allocated_end(second);
-    }
-
     QScopedPointer<std::string> staticObjectsString(new std::string());
-    staticObjects.SerializeToString(&*staticObjectsString);
+    serializeMessage(objects, *staticObjectsString);
 
     QMap<int, QTcpSocket *>::const_iterator i = clients.constBegin();
     while (i != clients.constEnd()) {

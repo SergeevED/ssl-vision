@@ -25,10 +25,11 @@
 #ifndef PLUGIN_MARK_STATIC_OBJECTS_H
 #define PLUGIN_MARK_STATIC_OBJECTS_H
 
+#include "static_objects/static_object_interface.h"
 #include "plugin_mark_static_objects_widget.h"
 
 #include <visionplugin.h>
-#include <vector>
+#include <list>
 #include <QScopedPointer>
 
 class TcpServer;
@@ -45,7 +46,7 @@ public:
 
 signals:
     void updateImage(QImage * im);
-    void sendCoordinates(const std::vector< QPair<QPoint, QPoint> >& objects);
+    void sendCoordinates(const std::list<StaticObjectInterface*>& objects);
 
 public slots:
     void redrawImage();

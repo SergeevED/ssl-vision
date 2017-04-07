@@ -96,7 +96,9 @@ set (SRCS
 	src/app/plugins/plugin_dvr.cpp
 	src/app/plugins/plugin_mark_static_objects/plugin_mark_static_objects.cpp
 	src/app/plugins/plugin_mark_static_objects/plugin_mark_static_objects_widget.cpp
-	src/app/plugins/plugin_mark_static_objects/tcpServer.cpp
+	src/app/plugins/plugin_mark_static_objects/tcp_server.cpp
+	src/app/plugins/plugin_mark_static_objects/static_objects/wall.cpp
+	src/app/plugins/plugin_mark_static_objects/static_objects/point.cpp
 	src/app/plugins/visionplugin.cpp
 
 	src/app/stacks/multistack_robocup_ssl.cpp
@@ -124,7 +126,7 @@ qt4_wrap_cpp (MOC_SRCS
 	src/app/plugins/plugin_legacypublishgeometry.h
 	src/app/plugins/plugin_mark_static_objects/plugin_mark_static_objects.h
 	src/app/plugins/plugin_mark_static_objects/plugin_mark_static_objects_widget.h
-	src/app/plugins/plugin_mark_static_objects/tcpServer.h
+	src/app/plugins/plugin_mark_static_objects/tcp_server.h
 	src/app/plugins/visionplugin.h
 	
 	src/app/stacks/multistack_robocup_ssl.h
